@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Review = require('./review.js');  // only once
+const e = require('connect-flash');
 const Schema = mongoose.Schema;
 
 const listingSchema = new Schema({
@@ -12,18 +13,8 @@ const listingSchema = new Schema({
     required: [true, "Description is required"]
   },
   image: {
-    filename: {
-      type: String,
-      default: "listingimage"
-    },
-    url: {
-      type: String,
-      default: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
-      set: (v) =>
-        v === ""
-          ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
-          : v,
-    }
+    url:String,
+    filename:String,
   },
   price: {
     type: Number,
@@ -47,7 +38,19 @@ const listingSchema = new Schema({
   owner: {
     type: Schema.Types.ObjectId,
     ref: "User"
+  },
+ geometry: {
+  type: {
+    type: String,
+    enum: ['Point'],
+    required: true
+  },
+  coordinates: {
+    type: [Number],
+    required: true
   }
+}
+
 });
 
 listingSchema.post("findOneAndDelete", async (listing) => {

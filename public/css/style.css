@@ -125,3 +125,10 @@ body{
     align-items: center;
     gap: 1rem;
 }
+
+/* maps */
+
+#map {
+    height: 400px;
+    width: 80vh;
+}

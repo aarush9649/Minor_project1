@@ -1,3 +1,6 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 const express=require('express');
 const app=express();
  const mongoose=require('mongoose');
@@ -6,6 +9,7 @@ const app=express();
  const ejsMate=require('ejs-mate');
  const ExpressError=require('./utils/ExpressError.js');
  const session=require("express-session");
+ const MongoStore=require("connect-mongo");
  const flash=require("connect-flash")
  const passport=require("passport");
  const LocalStrategy=require("passport-local");
@@ -16,7 +20,9 @@ const reviewRouter=require("./routes/review.js");
 const userRouter=require("./routes/user.js")
 // Importing the Listing model
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+// const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+const dbUrl=process.env.ATLASDB_URI
+
 // Connect to MongoDB
  main().then(()=>{
     console.log("Connected to MongoDB");    
@@ -25,7 +31,7 @@ const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
  })
 
  async function main() {
-    await mongoose.connect(MONGO_URL);
+    await mongoose.connect(dbUrl);
  }
 
     app.set('view engine', 'ejs');
@@ -35,9 +41,21 @@ const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
     app.engine('ejs', ejsMate);
     app.use(express.static(path.join(__dirname, 'public')));
 
+const store = MongoStore.create({
+   mongoUrl: dbUrl,
+   crypto: {
+      secret:process.env.SECRET
+   },
+   touchAfter: 24 * 3600, // time in seconds after which the session will be updated
+})
+
+store.on("error", function(e){
+   console.log("Session Store Error", e);
+})
 
 const sessionOptions={
-   secret:"mysuperscretcode",
+   store,
+   secret:process.env.SECRET,
    resave:false,
    saveUninitialized:true,
    cookie:{
@@ -46,9 +64,11 @@ const sessionOptions={
       httpOnly:true
    }
 }
-app.get('/',(req, res)=>{
-    res.send("Hello World");
-})
+// app.get('/',(req, res)=>{
+//     res.send("Hello World");
+// })
+
+
 
 
 app.use(session(sessionOptions))
